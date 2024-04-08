@@ -1,0 +1,162 @@
+﻿// Please see documentation at https://learn.microsoft.com/aspnet/core/client-side/bundling-and-minification
+// for details on configuring this project to bundle and minify static web assets.
+
+// Write your JavaScript code.
+document.addEventListener("DOMContentLoaded", function () {
+    var mask1 = /^%\d{5}[A-Z]_$/;//Formato de entrenamiento
+    var mask2 = /^ñ\d{5}[A-Z]_$/;//Formato nuevo de entrenamiento
+    var mask3 = /^%\d{6}_$/;//Formato normal CDC
+    var mask4 = /^ñ\d{6}_$/;//Formato nuevo CDC
+    var mask5 = /^%\d{7}_$/;//Formato normal TIZATE
+    var mask6 = /^ñ\d{7}_$/;//Formato nuevo TIZATE
+
+
+var entradaModal = document.getElementById('EntradaModal')
+var salidaModal = document.getElementById('SalidaModal')
+var entradaInput = document.getElementById('EntradaInput')
+var salidaInput = document.getElementById('SalidaInput')
+
+    var SuccessToast = document.getElementById('SuccessToast')
+    var ErrorToast = document.getElementById('ErrorToast')
+    var LoadingToast = document.getElementById('LoadingToast')
+
+    var successToast = bootstrap.Toast.getOrCreateInstance(SuccessToast)
+    var errorToast = bootstrap.Toast.getOrCreateInstance(ErrorToast)
+    var loadingToast = bootstrap.Toast.getOrCreateInstance(LoadingToast)
+
+
+
+entradaModal.addEventListener('shown.bs.modal', () => {
+    entradaInput.value = ''
+    entradaInput.focus()
+})
+
+salidaModal.addEventListener('shown.bs.modal', () => {
+    salidaInput.value = ''
+    salidaInput.focus()
+})
+
+ salidaModal.addEventListener('shown.bs.modal', () => {
+        salidaInput.value = ''
+        salidaInput.focus()
+    })
+
+    $('.btn-close').on('click', () => {
+
+    
+        if (entradaModal.classList.contains('show'))
+            entradaInput.focus()
+
+        if (salidaModal.classList.contains('show'))
+            salidaInput.focus()
+
+       
+    })
+
+
+entradaInput.addEventListener("input", function () {
+    
+    var inputValue = entradaInput.value;
+    let timeout;
+    if (mask1.test(inputValue) || mask2.test(inputValue) || mask3.test(inputValue) || mask4.test(inputValue) || mask5.test(inputValue) || mask6.test(inputValue) ) {
+
+        Marcar(inputValue, true);
+
+    }
+    else {
+        clearTimeout(timeout);
+        timeoutId = setTimeout(function () {
+            entradaInput.value = "";
+        }, 500);
+
+    }
+
+  
+});
+
+salidaInput.addEventListener("input", function () {
+
+    var inputValue = salidaInput.value;
+    let timeout;
+    
+   console.log(inputValue)
+
+    if (mask1.test(inputValue) || mask2.test(inputValue) || mask3.test(inputValue) || mask4.test(inputValue) || mask5.test(inputValue) || mask6.test(inputValue)  ) {
+        Marcar(inputValue, false);
+    }
+
+    else {
+        clearTimeout(timeout);
+        timeoutId = setTimeout(function () {
+            salidaInput.value = "";
+        }, 500);
+    
+    }
+   
+    
+});
+
+    
+
+    function Toast(data, error) {
+        if (!error) {
+            $("#EmpleadoLabel").text(`${data.numeroEmpleado} - ${data.nombreEmpleado}`)
+            $("#FechaEntradaLabel").text(`Entrada: ${data.fechaEntrada}`)
+            $("#FechaSalidaLabel").text(`Salida: ${data.fechaSalida}`)
+            successToast.show()
+           
+        }
+        else {
+            let error = data === null ? "Error al procesar marcación" : data.mensaje;
+            $("#ErrorLabel").text(error)
+            errorToast.show()
+        }
+
+
+       
+
+    }
+    
+
+function Marcar(carnet,entrada) {
+    // Configuración de la solicitud
+    const requestOptions = {
+        method: 'POST', // Método HTTP
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ // Datos a enviar (en este caso, como JSON)
+            Carnet: carnet,
+            Entrada: entrada
+            
+        })// Cabeceras de la solicitud
+    };
+    loadingToast.show()
+
+    // Realizar la solicitud
+    fetch('/Home/Marcar', requestOptions)
+        .then(response => {
+            loadingToast.hide()
+            entradaInput.value = "";
+            salidaInput.value = "";
+            console.log("INput despues de api: "+salidaInput.value)
+            if (!response.ok) {
+                throw new Error('Error en la solicitud');
+            }
+            return response.json(); 
+        })
+        .then(data => {
+            if (data.procesoOk) {
+                Toast(data, false)
+                
+            }
+            else 
+                Toast(data, true)
+
+          
+        })
+        .catch(error => {
+            Toast(null, true)
+            
+        });
+
+}
+});
